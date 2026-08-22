@@ -1,14 +1,38 @@
 import asyncio
+import os
 from playwright.async_api import async_playwright
 import csv
 from pathlib import Path
 from urllib.parse import urljoin
 from urllib.parse import quote_plus
 
-# Proxy configuration
-PROXY_USERNAME = "spra6q3w3h"
-PROXY_PASSWORD = "8v0A1mcgk3Bt+SSdod"
-PROXY_SERVER = "gate.decodo.com:10000"
+def load_env_file(filename):
+    """Load simple KEY=VALUE settings from the local hidden .env file."""
+    if not filename.is_file():
+        raise FileNotFoundError(
+            f"Proxy configuration file not found: {filename}. "
+            "Copy .env.example to .env and add your credentials."
+        )
+
+    with filename.open(encoding='utf-8') as file:
+        for line in file:
+            line = line.strip()
+            if not line or line.startswith('#') or '=' not in line:
+                continue
+            key, value = line.split('=', 1)
+            os.environ.setdefault(key.strip(), value.strip())
+
+
+BASE_DIR = Path(__file__).resolve().parent
+load_env_file(BASE_DIR / '.env')
+
+# Proxy configuration is kept in .env rather than source control.
+PROXY_USERNAME = os.environ.get('PROXY_USERNAME')
+PROXY_PASSWORD = os.environ.get('PROXY_PASSWORD')
+PROXY_SERVER = os.environ.get('PROXY_SERVER')
+
+if not all((PROXY_USERNAME, PROXY_PASSWORD, PROXY_SERVER)):
+    raise ValueError('.env must define PROXY_USERNAME, PROXY_PASSWORD, and PROXY_SERVER.')
 
 async def scrape_craigslist_jobs(url, max_listings=100):
     async with async_playwright() as p:
@@ -183,14 +207,19 @@ def save_to_csv(data, filename='craigslist_jobs.csv'):
     print(f"Saved {len(data)} listings to {filename}")
 
 async def main():
-    base_dir = Path(__file__).resolve().parent
-    locations = read_csv_values(base_dir / 'locations.csv', 'location')
-    queries = read_csv_values(base_dir / 'queries.csv', 'query')
-    categories = read_csv_values(base_dir / 'categories.csv', 'category')
+    base_dir = BASE_DIR
+    input_dir = base_dir / 'CSV_INPUT'
+    output_dir = base_dir / 'CSV_OUTPUT'
+    output_dir.mkdir(exist_ok=True)
+
+    locations = read_csv_values(input_dir / 'locations.csv', 'location')
+    queries = read_csv_values(input_dir / 'queries.csv', 'query')
+    categories = read_csv_values(input_dir / 'categories.csv', 'category')
 
     if not locations or not queries or not categories:
         raise ValueError(
-            'locations.csv, queries.csv, and categories.csv must each contain at least one value.'
+            'CSV_INPUT/locations.csv, CSV_INPUT/queries.csv, and '
+            'CSV_INPUT/categories.csv must each contain at least one value.'
         )
 
     max_listings = 100
@@ -223,7 +252,7 @@ async def main():
         print('No listings found.')
         return
 
-    save_to_csv(all_listings, base_dir / 'craigslist_jobs.csv')
+    save_to_csv(all_listings, output_dir / 'craigslist_jobs.csv')
 
 if __name__ == "__main__":
     asyncio.run(main())
