@@ -1,0 +1,12 @@
+# Ignore all new files by default.
+*
+
+# Keep directories visible so allowed files inside them can be matched.
+!*/
+
+# Only allow source and documentation files to be added.
+!*.py
+!*.md
+
+# Keep this rules file trackable; .env remains ignored by the default rule.
+!.gitignore
