@@ -1,9 +1,2 @@
-# Queens-Automation-Craigslist
-# Queens-Automation-Craigslist
-# Queens-Automation-Craigslist
-# Queens-Automation-Craigslist
-# Queens-Automation-Craigslist
-# Queens-Automation-Craigslist
-# Queens-Automation-Craigslist
-# Queens-Automation-Craigslist
-# Queens-Automation-Craigslist
+# Craigslist Bot
+
