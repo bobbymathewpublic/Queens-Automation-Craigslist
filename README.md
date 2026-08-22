@@ -8,8 +8,8 @@ This script has an input folder and and output folder (NOT UPLOADED). The input 
 `categories.csv`
 `queries.csv`
 
-The output folder contains
+The output folder contains:
 
 `craigslist_listings.csv`
 
-This includes
+This is the output file.
