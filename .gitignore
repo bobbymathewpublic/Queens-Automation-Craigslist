@@ -8,8 +8,5 @@
 !*.py
 !*.md
 
-# Track the reusable search-input templates, but not generated output files.
-!input/*.csv
-
 # Keep this rules file trackable; .env remains ignored by the default rule.
 !.gitignore
