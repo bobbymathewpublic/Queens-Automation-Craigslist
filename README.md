@@ -1,6 +1,6 @@
 # Craigslist Search Scraper
 
-`craigslist_bot.py` runs Craigslist searches through an authenticated proxy, collects the loaded listings, and writes them to a CSV file. Searches are controlled with three small CSV files, so you can change locations, categories, and phrases without editing Python code.
+`craigslist_bot.py` runs Craigslist searches through an authenticated proxy, collects the loaded listings, and writes them to a CSV file. Searches are controlled with three small plain-text files, so you can change locations, categories, and phrases without editing Python code.
 
 ## What the script does
 
@@ -42,31 +42,28 @@ The script reads these values when it starts. It stops with a clear error if the
 
 ## Search inputs
 
-Put the three input CSV files in the `input/` folder. Each file needs the exact header shown below and one value per subsequent row.
+Put the three input text files in the `input/` folder. Each non-empty line is one value; do not include a header row.
 
-### `input/locations.csv`
+### `input/locations.txt`
 
-```csv
-location
+```text
 newyork
 ```
 
 Use Craigslist area names such as `newyork`.
 
-### `input/categories.csv`
+### `input/categories.txt`
 
-```csv
-category
+```text
 jjj
 ggg
 ```
 
 Use Craigslist category codes such as `jjj`.
 
-### `input/queries.csv`
+### `input/queries.txt`
 
-```csv
-query
+```text
 business partner wanted
 ```
 
@@ -98,9 +95,9 @@ When listings are found, the script creates `output/craigslist_listings.csv` wit
 
 | Column | Description |
 | --- | --- |
-| `search_location` | Location value from `locations.csv` |
-| `search_category` | Category value from `categories.csv` |
-| `search_query` | Query value from `queries.csv` |
+| `search_location` | Location value from `locations.txt` |
+| `search_category` | Category value from `categories.txt` |
+| `search` | Query value with every double quotation mark (`"`) replaced by a pipe (`|`) |
 | `location` | Listing location shown by Craigslist |
 | `title` | Listing title |
 | `date` | Posted date text |
@@ -115,7 +112,7 @@ Generated output files are not tracked by Git.
 - **`ModuleNotFoundError: playwright`**: run `python3 -m pip install playwright`.
 - **Browser executable missing**: run `python3 -m playwright install chromium`.
 - **Missing `.env` value**: check all three proxy settings in `.env`.
-- **Missing input CSV or column**: confirm the filenames, folder, and header names exactly match the examples above.
+- **Missing input text file**: confirm the filenames and folder exactly match the examples above; each file must contain at least one non-empty line.
 - **No listings found**: verify the proxy credentials and test the generated Craigslist URL in a browser.
 
 ## Source

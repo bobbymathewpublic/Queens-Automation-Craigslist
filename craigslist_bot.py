@@ -12,9 +12,9 @@ BASE_DIR = Path(__file__).resolve().parent
 ENV_FILE = BASE_DIR / ".env"
 INPUT_DIR = BASE_DIR / "input"
 OUTPUT_DIR = BASE_DIR / "output"
-LOCATIONS_FILE = INPUT_DIR / "locations.csv"
-CATEGORIES_FILE = INPUT_DIR / "categories.csv"
-QUERIES_FILE = INPUT_DIR / "queries.csv"
+LOCATIONS_FILE = INPUT_DIR / "locations.txt"
+CATEGORIES_FILE = INPUT_DIR / "categories.txt"
+QUERIES_FILE = INPUT_DIR / "queries.txt"
 OUTPUT_FILE = OUTPUT_DIR / "craigslist_listings.csv"
 
 
@@ -46,33 +46,24 @@ def get_proxy_config():
     }
 
 
-def load_values(path, column_name):
-    """Read one required value per row from a single-column input CSV."""
+def load_values(path):
+    """Read one non-empty value per line from a plain-text input file."""
     path = Path(path)
     if not path.exists():
-        raise FileNotFoundError(f"Missing input CSV: {path}")
+        raise FileNotFoundError(f"Missing input text file: {path}")
 
-    with path.open(newline="", encoding="utf-8-sig") as search_file:
-        reader = csv.DictReader(search_file)
-        if column_name not in set(reader.fieldnames or []):
-            raise ValueError(f"{path.name} must contain a '{column_name}' column.")
-
-        values = []
-        for row_number, row in enumerate(reader, start=2):
-            value = (row.get(column_name) or "").strip()
-            if not value:
-                continue
-            values.append(value)
+    with path.open(encoding="utf-8-sig") as input_file:
+        values = [line.strip() for line in input_file if line.strip()]
     if not values:
-        raise ValueError(f"{path.name} has no {column_name} values.")
+        raise ValueError(f"{path.name} has no values.")
     return values
 
 
 def load_searches():
     """Return one search for every location × category × query combination."""
-    locations = load_values(LOCATIONS_FILE, "location")
-    categories = load_values(CATEGORIES_FILE, "category")
-    queries = load_values(QUERIES_FILE, "query")
+    locations = load_values(LOCATIONS_FILE)
+    categories = load_values(CATEGORIES_FILE)
+    queries = load_values(QUERIES_FILE)
     return [
         {"location": location, "category": category, "query": query}
         for location, category, query in product(locations, categories, queries)
@@ -157,7 +148,7 @@ async def scrape_craigslist_housing(url, max_listings, proxy):
 
 
 def save_to_csv(data, filename=OUTPUT_FILE):
-    fields = ["search_location", "search_category", "search_query",
+    fields = ["search_location", "search_category", "search",
               "location", "title", "date", "price", "bedrooms", "url"]
     OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
     with open(filename, "w", newline="", encoding="utf-8") as output_file:
@@ -180,7 +171,7 @@ async def main():
         for listing in listings:
             listing.update({"search_location": search["location"],
                             "search_category": search["category"],
-                            "search_query": search["query"]})
+                            "search": search["query"].replace('"', "|")})
         all_listings.extend(listings)
 
     if not all_listings:
